@@ -1,8 +1,12 @@
 from typing import List
 from app.course_service import CourseService
+from operator import itemgetter # for getting dict values while sorting
 
 # using a manual id generator for simplicity and readability rather than using uuid
 # dictionary operations are wrapped in try-catch block to override with custom exceptions
+
+#TODO: DEFINE ALL GETTERS AND SETTERS FOR CLASSES : COURSE, STUDENT, ASSIGNMENT
+#TODO: ADD FINAL COMMENTS
 
 class CourseServiceImpl(CourseService):
   def __init__(self):
@@ -28,10 +32,15 @@ class CourseServiceImpl(CourseService):
   #TODO : might remove this function
   def get_students_by_course_id(self, course_id):
     course = self.get_course_by_id(course_id)
-    return [student.id for student in course.students_enrolled]
+    return [student.id for student in course.students_enrolled.values()]
+  
+  #TODO : might remove this function
+  def get_assignments_by_course_id(self, course_id):
+    course = self.get_course_by_id(course_id)
+    return [assignment.name for assignment in course.assignments.values()]
   
   def create_course(self, course_name):
-    new_course = Course(course_name)
+    new_course = Course(course_name, self.course_id)
     self.courses[self.course_id] = new_course
     self.course_id+=1
   
@@ -47,70 +56,97 @@ class CourseServiceImpl(CourseService):
     course = self.get_course_by_id(course_id)
     course.enroll_student_in_course(student_id)
     
-
   def dropout_student(self, course_id, student_id):
     course = self.get_course_by_id(course_id)
     course.drop_student_from_course(student_id, course_id) 
   
   def submit_assignment(self, course_id, student_id, assignment_id, grade: int):
-    """
-    Submits an assignment for a student. A grade of an assignment will be an integer between 0 and 100 inclusive.
-    """
-    pass
+    course = self.get_course_by_id(course_id)
+    student = course.get_student_by_id(student_id)
+    assignment = course.get_assignment_by_id(assignment_id)    
+    if grade < 0 or grade > 100:
+      raise ValueError("Grade must be between 0 and 100 inclusive.")
+    course.grades[(student.id, assignment.id)] = grade
 
   def get_assignment_grade_avg(self, course_id, assignment_id) -> int:
-    """
-    Returns the average grade for an assignment. Floors the result to the nearest integer.
-    """
-    pass
-
+    course = self.get_course_by_id(course_id)
+    assignment = course.get_assignment_by_id(assignment_id) # to ensure assignment exists
+    total_grade, total_count = 0, 0
+    
+    for (s_id, a_id), grade in self.grades.items():
+      if a_id == assignment.id:
+        total_grade += grade
+        total_count += 1
+        
+    return total_grade//total_count
+    
   def get_student_grade_avg(self, course_id, student_id) -> int:
-    """
-    Returns the average grade for a student in a course. Floors the result to the nearest integer.
-    """
-    pass
+    course = self.get_course_by_id(course_id)
+    student = course.get_student_by_id(student_id) # to ensure student exists
+    
+    for (s_id, a_id), grade in self.grade.items():
+      if s_id == student.id:
+        total_grade += grade
+        total_count += 1
+    
+    return total_grade//total_count
 
   def get_top_five_students(self, course_id) -> List[int]:
-    """
-    Returns the IDs of the top 5 students in a course based on their average grades of all assignments.
-    """
-    pass
+    course = self.get_course_by_id(course_id)
+    student_grades = {} # {student_id : total_grade}
+    
+    for student_id in course.students_enrolled.keys():
+      student_grades[student_id] = self.get_student_grade_avg(course_id, student_id)
+    
+    sorted_student_grades = dict(sorted(student_grades.item(), key=itemgetter(1), reverse=True))
+    top_students = [ course.students_enrolled[student] for student in sorted_student_grades.keys()[:5] ]
+    
+    return top_students
 
 class Course():
-  def __init__(self, course_name):
+  def __init__(self, course_name, course_id):
+    self.id = course_id
     self.name = course_name
-    self.assignments = {} # {assignment_id : assignment_object}
     self.assignment_id = 0 # assignment id generator
-    self.students_enrolled = []
+    self.assignments = {} # {assignment_id : assignment_object}
+    self.students_enrolled = {} # {student_id : student_object}
+    self.grades = {} # {(student_id, assignment_id) : grade} 
+  
+  def get_student_by_id(self, student_id):
+    try:
+      student = self.students_enrolled[student_id]
+      return student
+    except KeyError:
+      raise KeyError(f"Student with ID {student_id} not found in Course: {self.name} (id:{self.id})")
+  
+  def get_assignment_by_id(self, assignment_id):
+    try:
+      assignment = self.assignments[assignment_id]
+      return assignment
+    except KeyError:
+      raise KeyError(f"Assignment with ID {assignment_id} not found in Course: {self.name} (id:{self.id})")
     
   def create_course_assignment(self, assignment_name):
-    new_assignment = Assignment(assignment_name)
+    new_assignment = Assignment(assignment_name, self.assignment_id)
     self.assignments[self.assignment_id] = new_assignment
-    new_assignment += 1 
+    self.assignment_id += 1 
     
   def enroll_student_in_course(self, student_id):
     new_student = Student(student_id)
-    self.students_enrolled.append(new_student)
+    self.students_enrolled[student_id] = new_student
     
   def drop_student_from_course(self, student_id, course_id):
-    remove_student = None # student to be removed
-    for student in self.students_enrolled:
-      if student.id == student_id:
-        remove_student = student
-        break
-    
-    if(remove_student):
-      self.students_enrolled.remove(remove_student)
-    else:
-      raise ValueError(f"Student id: {student_id} not found in Course: {self.name} (id:{course_id})")
+    try:
+      self.students_enrolled.pop(student_id)
+    except KeyError:
+      raise KeyError(f"Student with ID {student_id} not found in Course: {self.name} (id:{self.id})")
     
 class Assignment():
-  def __init__(self, assignment_name, assignment_grade = None):
+  def __init__(self, assignment_name, assignment_id):
+    self.id = assignment_id
     self.name = assignment_name
-    self.grade = ["assignment-grades"] 
     
 class Student():
   def __init__(self, student_id):
     self.id = student_id
-    #self.course_ids = ["course_id"] #added by a setter
-  
+    
