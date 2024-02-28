@@ -1,4 +1,10 @@
+# This file was used for tests while developing the various functionalities, it is raw documentation of all the tests I was conducting during development to ensure ideal output
+# it also contains two print functions which appropriately print the course object return by functions (get_courses() and get_course_by_id())
+# These print functions were used to ensure the intended data was being added/removed from the Course object
+# This is not the file for unit tests, the testing file can be found in tests/test_course_service_implementation.py
+
 from app.course_service_impl import CourseServiceImpl
+
 
 def print_all_courses(course_service):
   courses_list = course_service.get_courses() 
@@ -58,7 +64,6 @@ if __name__ == "__main__":
   # Raises error since Student id : 30 already exists in course id 0
   # course_service.enroll_student(0, 30)
   
-  # TODO : implement in unit_test
   # Raises error since Course id : 1 was removed
   # course_service.enroll_student(1, 11)
   
@@ -108,7 +113,6 @@ if __name__ == "__main__":
   course_service.submit_assignment(2, 22, 1, 20)
   course_service.submit_assignment(2, 32, 0, 20)
   
-  # TODO : implement in unit_test
   # Raises error since Assignment id : 2 does not exist in course id : 2
   # course_service.submit_assignment(2, 12, 2, 10)
   
@@ -147,8 +151,8 @@ if __name__ == "__main__":
   actual_assignment_average = new_course_service.get_assignment_grade_avg(course_id, assignment_id)
   print(actual_assignment_average) # outputs 30 which is same as expected
   
+  # remaining function tests can be found in tests/test_course_service_implementation
   
-  # TODO : implement in unit_test
   # Raises error since Course id : 3 does not exist  
   # print(course_service.get_assignments_by_course_id(3))
 

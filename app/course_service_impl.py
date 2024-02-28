@@ -5,7 +5,6 @@ from app.course_service import CourseService
 # dictionary operations are wrapped in try-catch block to override with custom exceptions
 # re-submission are not allowed
 
-#TODO: DEFINE ALL GETTERS AND SETTERS FOR CLASSES : COURSE, STUDENT, ASSIGNMENT
 #TODO: ADD FINAL COMMENTS
 
 class CourseServiceImpl(CourseService):
@@ -13,14 +12,12 @@ class CourseServiceImpl(CourseService):
     self.courses = {} # {course_id : course_object}
     self.course_id = 0 # course id generator
 
-  #TODO: ADD GRADES
   def get_courses(self):
     if not self.courses:
         raise LookupError("No courses found")
     else:
       return [course for course in self.courses.values()]
   
-  #TODO: SHOW ALL DETAILS ABOUT COURSE
   def get_course_by_id(self, course_id):
     try:
       course = self.courses[course_id]
@@ -50,7 +47,6 @@ class CourseServiceImpl(CourseService):
     course = self.get_course_by_id(course_id)
     course.drop_student_from_course(student_id, course_id) 
   
-  #TODO : check if assignment is not already submitted
   def submit_assignment(self, course_id, student_id, assignment_id, grade: int):
     if grade < 0 or grade > 100:
       raise ValueError("Grade must be between 0 and 100 inclusive.")

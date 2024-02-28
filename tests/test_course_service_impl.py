@@ -2,8 +2,9 @@ import unittest
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from app.course_service_impl import CourseServiceImpl, Course
+
+# This Unit Test File contains 33 Test cases for a total of 11 functions of class CourseServiceImpl
 
 class CourseServiceTests(unittest.TestCase):
     def setUp(self):
